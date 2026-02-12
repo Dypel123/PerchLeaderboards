@@ -10,7 +10,6 @@ import me.perch.Leaderboards;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-
 import java.io.File;
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -131,10 +130,6 @@ public class TimedLeaderboard extends Leaderboard {
         );
     }
 
-    /* ============================= */
-    /*        Internal Logic         */
-    /* ============================= */
-
     private void startTasks() {
 
         Bukkit.getScheduler().runTaskTimer(
@@ -217,10 +212,6 @@ public class TimedLeaderboard extends Leaderboard {
                 .limit(CACHE_LIMIT)
                 .collect(Collectors.toList());
     }
-
-    /* ============================= */
-    /*        Data Handling          */
-    /* ============================= */
 
     private void load() {
 

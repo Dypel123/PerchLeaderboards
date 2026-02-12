@@ -5,7 +5,6 @@ import me.perch.Leaderboards;
 import me.perch.leaderboard.Leaderboard;
 import me.perch.leaderboard.TimedLeaderboard;
 import org.bukkit.entity.Player;
-
 import java.util.Locale;
 
 public class PerchLeaderboardExpansion extends PlaceholderExpansion {
@@ -45,9 +44,7 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
 
         try {
 
-            /*
-             * %perchlb_description_<leaderboard>%
-             */
+            // %perchlb_description_<leaderboard>%
             if (params.startsWith("description_")) {
 
                 String name = params.substring("description_".length());
@@ -64,9 +61,8 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
 
             }
 
-            /*
-             * %perchlb_topname_<leaderboard>_<position>%
-             */
+
+            // %perchlb_topname_<leaderboard>_<position>%
             if (params.startsWith("topname_")) {
 
                 String[] split = params.split("_");
@@ -83,9 +79,7 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                         : "";
             }
 
-            /*
-             * %perchlb_topvalue_<leaderboard>_<position>%
-             */
+            // perchlb_topvalue_<leaderboard>_<position>%
             if (params.startsWith("topvalue_")) {
 
                 String[] split = params.split("_");
@@ -102,10 +96,8 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                         : "";
             }
 
-            /*
-             * %perchlb_timeuntil_<leaderboard>%
-             * (optional but useful)
-             */
+
+            // perchlb_timeuntil_<leaderboard>%
             if (params.startsWith("timeuntil_")) {
 
                 String name = params.substring("timeuntil_".length());

@@ -2,7 +2,6 @@ package me.perch.leaderboard;
 
 import me.perch.Leaderboards;
 import org.bukkit.configuration.file.YamlConfiguration;
-
 import java.io.File;
 import java.util.*;
 

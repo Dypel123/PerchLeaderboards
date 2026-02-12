@@ -5,7 +5,6 @@ import me.perch.leaderboard.TimedLeaderboard;
 import me.perch.leaderboard.TimedTask;
 import org.bukkit.ChatColor;
 import org.bukkit.command.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
