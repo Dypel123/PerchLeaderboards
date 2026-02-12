@@ -69,10 +69,6 @@ public class TimedLeaderboard extends Leaderboard {
         startTasks();
     }
 
-    /* ============================= */
-    /*         Public API            */
-    /* ============================= */
-
     @Override
     public String getPlaceholder() {
         return tasks.get(currentTaskIndex).getPlaceholder();
