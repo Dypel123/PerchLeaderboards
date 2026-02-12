@@ -5,6 +5,8 @@ import me.perch.Leaderboards;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -23,10 +25,14 @@ public class SimpleLeaderboard extends Leaderboard {
     private volatile List<Map.Entry<UUID, Double>> cachedTop = new ArrayList<>();
     private volatile boolean dirty = false;
 
+    private volatile boolean updating = false;
+
     private final File dataFile;
 
-    public SimpleLeaderboard(String name, String description,
-                             String placeholder, int updateInterval,
+    public SimpleLeaderboard(String name,
+                             String description,
+                             String placeholder,
+                             int updateInterval,
                              int saveInterval) {
 
         super(name, "simple", description);
@@ -81,29 +87,65 @@ public class SimpleLeaderboard extends Leaderboard {
 
     private void updateSync() {
 
-        boolean changed = false;
+        if (updating) return;
+        updating = true;
 
-        for (Player p : Bukkit.getOnlinePlayers()) {
+        List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
 
-            String result = PlaceholderAPI.setPlaceholders(p, placeholder);
+        if (players.isEmpty()) {
+            updating = false;
+            return;
+        }
 
-            try {
-                double value = Double.parseDouble(result);
-                UUID uuid = p.getUniqueId();
+        final int batchSize = 10;
 
-                if (!values.containsKey(uuid) ||
-                        values.get(uuid) != value) {
+        new BukkitRunnable() {
 
-                    values.put(uuid, value);
-                    changed = true;
+            int index = 0;
+            boolean changed = false;
+
+            @Override
+            public void run() {
+
+                int processed = 0;
+
+                while (index < players.size() && processed < batchSize) {
+
+                    Player player = players.get(index++);
+                    processed++;
+
+                    String result =
+                            PlaceholderAPI.setPlaceholders(player, placeholder);
+
+                    double value;
+                    try {
+                        value = Double.parseDouble(result.replace(",", ""));
+                    } catch (Exception e) {
+                        continue;
+                    }
+
+                    UUID uuid = player.getUniqueId();
+                    Double old = values.get(uuid);
+
+                    if (old == null || Double.compare(old, value) != 0) {
+                        values.put(uuid, value);
+                        changed = true;
+                    }
                 }
-            } catch (Exception ignored) {}
-        }
 
-        if (changed) {
-            rebuildCache();
-            dirty = true;
-        }
+                if (index >= players.size()) {
+
+                    if (changed) {
+                        rebuildCache();
+                        dirty = true;
+                    }
+
+                    updating = false;
+                    cancel();
+                }
+            }
+
+        }.runTaskTimer(Leaderboards.getInstance(), 0L, 1L);
     }
 
     private void rebuildCache() {

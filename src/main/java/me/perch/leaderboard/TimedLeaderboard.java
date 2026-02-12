@@ -10,6 +10,8 @@ import me.perch.Leaderboards;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
+
 import java.io.File;
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -32,6 +34,8 @@ public class TimedLeaderboard extends Leaderboard {
 
     private volatile List<Map.Entry<UUID, Double>> cachedTop = new ArrayList<>();
     private volatile boolean dirty = false;
+    private volatile boolean updating = false;
+    private volatile boolean resetting = false;
 
     private final File dataFile;
     private long lastReset;
@@ -145,47 +149,82 @@ public class TimedLeaderboard extends Leaderboard {
 
     private void updateSync() {
 
+        if (updating || resetting) return;
+        updating = true;
+
         checkReset();
 
-        boolean changed = false;
-        String activePlaceholder = getPlaceholder();
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-
-            String result = PlaceholderAPI.setPlaceholders(player, activePlaceholder);
-
-            double current;
-            try {
-                current = Double.parseDouble(result.replace(",", ""));
-            } catch (Exception e) {
-                continue;
-            }
-
-            UUID uuid = player.getUniqueId();
-
-            baseline.putIfAbsent(uuid, current);
-
-            double earned = current - baseline.get(uuid);
-
-            Double old = values.get(uuid);
-
-            if (old == null || Double.compare(old, earned) != 0) {
-                values.put(uuid, earned);
-                changed = true;
-            }
+        List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
+        if (players.isEmpty()) {
+            updating = false;
+            return;
         }
 
-        if (changed) {
-            rebuildCache();
-            dirty = true;
-        }
+        final int batchSize = 10;
+
+        new BukkitRunnable() {
+
+            int index = 0;
+            boolean changed = false;
+            String activePlaceholder = getPlaceholder();
+
+            @Override
+            public void run() {
+
+                int processed = 0;
+
+                while (index < players.size() && processed < batchSize) {
+
+                    Player player = players.get(index++);
+                    processed++;
+
+                    String result =
+                            PlaceholderAPI.setPlaceholders(player, activePlaceholder);
+
+                    double current;
+                    try {
+                        current = Double.parseDouble(result.replace(",", ""));
+                    } catch (Exception e) {
+                        continue;
+                    }
+
+                    UUID uuid = player.getUniqueId();
+
+                    baseline.putIfAbsent(uuid, current);
+                    double earned = current - baseline.get(uuid);
+
+                    Double old = values.get(uuid);
+
+                    if (old == null || Double.compare(old, earned) != 0) {
+                        values.put(uuid, earned);
+                        changed = true;
+                    }
+                }
+
+                if (index >= players.size()) {
+
+                    if (changed) {
+                        rebuildCache();
+                        dirty = true;
+                    }
+
+                    updating = false;
+                    cancel();
+                }
+            }
+
+        }.runTaskTimer(Leaderboards.getInstance(), 0L, 1L);
     }
+
+
 
     private void checkReset() {
 
         if (getTimeUntilResetMillis() > 0) return;
+        if (resetting) return;
 
-        // Rotate task
+        resetting = true;
+
         currentTaskIndex++;
         if (currentTaskIndex >= tasks.size()) {
             currentTaskIndex = 0;
@@ -198,7 +237,10 @@ public class TimedLeaderboard extends Leaderboard {
         cachedTop = new ArrayList<>();
 
         dirty = true;
+
+        resetting = false;
     }
+
 
     private void rebuildCache() {
 
