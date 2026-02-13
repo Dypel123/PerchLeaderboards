@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +25,8 @@ public class TimedLeaderboard extends Leaderboard {
     private static final int CACHE_LIMIT = 30;
 
     private final List<TimedTask> tasks;
+    private final Map<Integer, List<String>> rewards;
+
     private int currentTaskIndex = 0;
 
     private final int updateInterval;
@@ -42,8 +45,12 @@ public class TimedLeaderboard extends Leaderboard {
 
     private final ExecutionTime executionTime;
 
+    private BukkitTask updateTask;
+    private BukkitTask saveTask;
+
     public TimedLeaderboard(String name,
                             List<TimedTask> tasks,
+                            Map<Integer, List<String>> rewards,
                             String cronExpression,
                             int updateInterval,
                             int saveInterval) {
@@ -54,6 +61,7 @@ public class TimedLeaderboard extends Leaderboard {
             throw new IllegalArgumentException("Timed leaderboard must have at least one task.");
 
         this.tasks = tasks;
+        this.rewards = rewards != null ? rewards : new HashMap<>();
         this.updateInterval = updateInterval;
         this.saveInterval = saveInterval;
 
@@ -110,11 +118,8 @@ public class TimedLeaderboard extends Leaderboard {
 
     @Override
     public String getTopName(int position) {
-
         if (position <= 0 || position > cachedTop.size()) return "";
-
         UUID uuid = cachedTop.get(position - 1).getKey();
-
         return Optional.ofNullable(
                 Bukkit.getOfflinePlayer(uuid).getName()
         ).orElse("");
@@ -122,9 +127,7 @@ public class TimedLeaderboard extends Leaderboard {
 
     @Override
     public String getTopValue(int position) {
-
         if (position <= 0 || position > cachedTop.size()) return "";
-
         return String.valueOf(
                 cachedTop.get(position - 1).getValue()
         );
@@ -132,20 +135,21 @@ public class TimedLeaderboard extends Leaderboard {
 
     private void startTasks() {
 
-        Bukkit.getScheduler().runTaskTimer(
+        updateTask = Bukkit.getScheduler().runTaskTimer(
                 Leaderboards.getInstance(),
                 this::updateSync,
                 20L,
                 updateInterval * 20L
         );
 
-        Bukkit.getScheduler().runTaskTimerAsynchronously(
+        saveTask = Bukkit.getScheduler().runTaskTimerAsynchronously(
                 Leaderboards.getInstance(),
                 this::saveIfDirtyAsync,
                 saveInterval * 20L,
                 saveInterval * 20L
         );
     }
+
 
     private void updateSync() {
 
@@ -207,9 +211,7 @@ public class TimedLeaderboard extends Leaderboard {
                     }
 
                     updating = false;
-
                     checkReset();
-
                     cancel();
                 }
             }
@@ -217,14 +219,15 @@ public class TimedLeaderboard extends Leaderboard {
         }.runTaskTimer(Leaderboards.getInstance(), 0L, 1L);
     }
 
-
-
     private void checkReset() {
 
         if (getTimeUntilResetMillis() > 0) return;
         if (resetting) return;
 
         resetting = true;
+
+        // DISTRIBUTE REWARDS BEFORE CLEARING
+        distributeRewards();
 
         // Rotate task
         currentTaskIndex++;
@@ -282,7 +285,36 @@ public class TimedLeaderboard extends Leaderboard {
         }.runTaskTimer(Leaderboards.getInstance(), 0L, 1L);
     }
 
+    private void distributeRewards() {
 
+        if (rewards.isEmpty()) return;
+        if (cachedTop.isEmpty()) return;
+
+        for (Map.Entry<Integer, List<String>> entry : rewards.entrySet()) {
+
+            int position = entry.getKey();
+            if (position <= 0 || position > cachedTop.size()) continue;
+
+            UUID uuid = cachedTop.get(position - 1).getKey();
+            String playerName = Bukkit.getOfflinePlayer(uuid).getName();
+            double score = cachedTop.get(position - 1).getValue();
+
+            if (playerName == null) continue;
+
+            for (String command : entry.getValue()) {
+
+                String parsed = command
+                        .replace("{player}", playerName)
+                        .replace("{position}", String.valueOf(position))
+                        .replace("{score}", String.valueOf(score));
+
+                Bukkit.dispatchCommand(
+                        Bukkit.getConsoleSender(),
+                        parsed
+                );
+            }
+        }
+    }
 
     private void rebuildCache() {
 
@@ -352,6 +384,16 @@ public class TimedLeaderboard extends Leaderboard {
 
     @Override
     public void shutdown() {
+
+        if (updateTask != null) {
+            updateTask.cancel();
+        }
+
+        if (saveTask != null) {
+            saveTask.cancel();
+        }
+
         saveIfDirtyAsync();
     }
+
 }

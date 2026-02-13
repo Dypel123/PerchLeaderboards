@@ -86,13 +86,35 @@ public class LeaderboardManager {
                     continue;
                 }
 
+                // ✅ LOAD REWARDS
+                Map<Integer, List<String>> rewards = new HashMap<>();
+
+                if (config.contains("rewards")) {
+
+                    for (String key : config.getConfigurationSection("rewards").getKeys(false)) {
+
+                        try {
+                            int position = Integer.parseInt(key);
+                            List<String> commands = config.getStringList("rewards." + key);
+
+                            if (!commands.isEmpty()) {
+                                rewards.put(position, commands);
+                            }
+
+                        } catch (NumberFormatException e) {
+                            plugin.getLogger().warning("Invalid reward position '" + key + "' in leaderboard '" + name + "'");
+                        }
+                    }
+                }
+
                 String cron = config.getString("cron", "0 0 0 1 * ?");
                 int update = config.getInt("update-interval", 30);
                 int save = config.getInt("save-interval", 300);
 
                 leaderboards.put(name,
-                        new TimedLeaderboard(name, tasks, cron, update, save));
+                        new TimedLeaderboard(name, tasks, rewards, cron, update, save));
             }
+
 
         }
     }
