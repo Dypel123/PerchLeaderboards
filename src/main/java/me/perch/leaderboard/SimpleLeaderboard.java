@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +29,9 @@ public class SimpleLeaderboard extends Leaderboard {
     private volatile boolean updating = false;
 
     private final File dataFile;
+
+    private BukkitTask updateTask;
+    private BukkitTask saveTask;
 
     public SimpleLeaderboard(String name,
                              String description,
@@ -70,20 +74,21 @@ public class SimpleLeaderboard extends Leaderboard {
 
     private void startTasks() {
 
-        Bukkit.getScheduler().runTaskTimer(
+        updateTask = Bukkit.getScheduler().runTaskTimer(
                 Leaderboards.getInstance(),
                 this::updateSync,
                 20L,
                 updateInterval * 20L
         );
 
-        Bukkit.getScheduler().runTaskTimerAsynchronously(
+        saveTask = Bukkit.getScheduler().runTaskTimerAsynchronously(
                 Leaderboards.getInstance(),
                 this::saveAsync,
                 saveInterval * 20L,
                 saveInterval * 20L
         );
     }
+
 
     private void updateSync() {
 
@@ -177,5 +182,17 @@ public class SimpleLeaderboard extends Leaderboard {
     }
 
     @Override
-    public void shutdown() { saveAsync(); }
+    public void shutdown() {
+
+        if (updateTask != null) {
+            updateTask.cancel();
+        }
+
+        if (saveTask != null) {
+            saveTask.cancel();
+        }
+
+        saveAsync();
+    }
+
 }

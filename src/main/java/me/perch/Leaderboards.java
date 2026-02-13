@@ -31,10 +31,14 @@ public class Leaderboards extends JavaPlugin {
 
     @Override
     public void onDisable() {
+
         if (leaderboardManager != null) {
             leaderboardManager.shutdown();
         }
+
+        Bukkit.getScheduler().cancelTasks(this);
     }
+
 
 
     public static Leaderboards getInstance() {

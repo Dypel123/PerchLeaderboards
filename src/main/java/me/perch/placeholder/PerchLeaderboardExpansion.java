@@ -79,6 +79,24 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                         : "";
             }
 
+            // %perchlb_topvalueraw_<leaderboard>_<position>%
+            if (params.startsWith("topvalueraw_")) {
+
+                String[] split = params.split("_");
+                if (split.length != 3) return "";
+
+                String name = split[1];
+                int position = Integer.parseInt(split[2]);
+
+                Leaderboard leaderboard =
+                        plugin.getLeaderboardManager().getLeaderboard(name);
+
+                if (leaderboard == null) return "";
+
+                String raw = leaderboard.getTopValue(position);
+                return raw != null ? raw : "";
+            }
+
             // %perchlb_topvalue_<leaderboard>_<position>%
             if (params.startsWith("topvalue_")) {
 
