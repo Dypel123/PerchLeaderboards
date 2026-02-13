@@ -86,7 +86,6 @@ public class LeaderboardManager {
                     continue;
                 }
 
-                // ✅ LOAD REWARDS
                 Map<Integer, List<String>> rewards = new HashMap<>();
 
                 if (config.contains("rewards")) {
