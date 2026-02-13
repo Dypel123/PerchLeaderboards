@@ -226,6 +226,7 @@ public class TimedLeaderboard extends Leaderboard {
 
         resetting = true;
 
+        // Rotate task
         currentTaskIndex++;
         if (currentTaskIndex >= tasks.size()) {
             currentTaskIndex = 0;
@@ -237,10 +238,50 @@ public class TimedLeaderboard extends Leaderboard {
         values.clear();
         cachedTop = new ArrayList<>();
 
-        dirty = true;
+        List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
+        if (players.isEmpty()) {
+            dirty = true;
+            resetting = false;
+            return;
+        }
 
-        resetting = false;
+        final int batchSize = 10;
+        final String placeholder = getPlaceholder();
+
+        new BukkitRunnable() {
+
+            int index = 0;
+
+            @Override
+            public void run() {
+
+                int processed = 0;
+
+                while (index < players.size() && processed < batchSize) {
+
+                    Player player = players.get(index++);
+                    processed++;
+
+                    String result =
+                            PlaceholderAPI.setPlaceholders(player, placeholder);
+
+                    try {
+                        double value = Double.parseDouble(result.replace(",", ""));
+                        baseline.put(player.getUniqueId(), value);
+                    } catch (Exception ignored) {}
+                }
+
+                if (index >= players.size()) {
+
+                    dirty = true;
+                    resetting = false;
+                    cancel();
+                }
+            }
+
+        }.runTaskTimer(Leaderboards.getInstance(), 0L, 1L);
     }
+
 
 
     private void rebuildCache() {
