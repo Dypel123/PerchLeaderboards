@@ -79,7 +79,7 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                         : "";
             }
 
-            // perchlb_topvalue_<leaderboard>_<position>%
+            // %perchlb_topvalue_<leaderboard>_<position>%
             if (params.startsWith("topvalue_")) {
 
                 String[] split = params.split("_");
@@ -91,13 +91,27 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                 Leaderboard leaderboard =
                         plugin.getLeaderboardManager().getLeaderboard(name);
 
-                return leaderboard != null
-                        ? leaderboard.getTopValue(position)
-                        : "";
+                if (leaderboard == null) return "";
+
+                String raw = leaderboard.getTopValue(position);
+                if (raw == null || raw.isEmpty()) return "";
+
+                try {
+                    double value = Double.parseDouble(raw);
+
+                    if (value == Math.floor(value)) {
+                        return String.valueOf((long) value);
+                    }
+
+                    return String.valueOf(value);
+
+                } catch (NumberFormatException e) {
+                    return raw;
+                }
             }
 
 
-            // perchlb_timeuntil_<leaderboard>%
+            // %perchlb_timeuntil_<leaderboard>%
             if (params.startsWith("timeuntil_")) {
 
                 String name = params.substring("timeuntil_".length());
