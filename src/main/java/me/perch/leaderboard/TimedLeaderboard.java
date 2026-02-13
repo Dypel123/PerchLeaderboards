@@ -31,6 +31,7 @@ public class TimedLeaderboard extends Leaderboard {
 
     private final int updateInterval;
     private final int saveInterval;
+    private final long startDelay;
 
     private final Map<UUID, Double> baseline = new ConcurrentHashMap<>();
     private final Map<UUID, Double> values = new ConcurrentHashMap<>();
@@ -53,7 +54,8 @@ public class TimedLeaderboard extends Leaderboard {
                             Map<Integer, List<String>> rewards,
                             String cronExpression,
                             int updateInterval,
-                            int saveInterval) {
+                            int saveInterval,
+                            long startDelay) {
 
         super(name, "timed", "");
 
@@ -64,6 +66,7 @@ public class TimedLeaderboard extends Leaderboard {
         this.rewards = rewards != null ? rewards : new HashMap<>();
         this.updateInterval = updateInterval;
         this.saveInterval = saveInterval;
+        this.startDelay = startDelay;
 
         this.dataFile = new File(
                 Leaderboards.getInstance().getDataFolder(),
@@ -138,7 +141,7 @@ public class TimedLeaderboard extends Leaderboard {
         updateTask = Bukkit.getScheduler().runTaskTimer(
                 Leaderboards.getInstance(),
                 this::updateSync,
-                20L,
+                20L + startDelay,
                 updateInterval * 20L
         );
 

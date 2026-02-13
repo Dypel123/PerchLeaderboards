@@ -21,11 +21,11 @@ public class SimpleLeaderboard extends Leaderboard {
     private final String placeholder;
     private final int updateInterval;
     private final int saveInterval;
+    private final long startDelay;
 
     private final Map<UUID, Double> values = new ConcurrentHashMap<>();
     private volatile List<Map.Entry<UUID, Double>> cachedTop = new ArrayList<>();
     private volatile boolean dirty = false;
-
     private volatile boolean updating = false;
 
     private final File dataFile;
@@ -37,13 +37,15 @@ public class SimpleLeaderboard extends Leaderboard {
                              String description,
                              String placeholder,
                              int updateInterval,
-                             int saveInterval) {
+                             int saveInterval,
+                             long startDelay) {
 
         super(name, "simple", description);
 
         this.placeholder = placeholder;
         this.updateInterval = updateInterval;
         this.saveInterval = saveInterval;
+        this.startDelay = startDelay;
 
         this.dataFile = new File(
                 Leaderboards.getInstance().getDataFolder(),
@@ -77,7 +79,7 @@ public class SimpleLeaderboard extends Leaderboard {
         updateTask = Bukkit.getScheduler().runTaskTimer(
                 Leaderboards.getInstance(),
                 this::updateSync,
-                20L,
+                20L + startDelay,
                 updateInterval * 20L
         );
 
@@ -89,14 +91,12 @@ public class SimpleLeaderboard extends Leaderboard {
         );
     }
 
-
     private void updateSync() {
 
         if (updating) return;
         updating = true;
 
         List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
-
         if (players.isEmpty()) {
             updating = false;
             return;
@@ -184,15 +184,9 @@ public class SimpleLeaderboard extends Leaderboard {
     @Override
     public void shutdown() {
 
-        if (updateTask != null) {
-            updateTask.cancel();
-        }
-
-        if (saveTask != null) {
-            saveTask.cancel();
-        }
+        if (updateTask != null) updateTask.cancel();
+        if (saveTask != null) saveTask.cancel();
 
         saveAsync();
     }
-
 }

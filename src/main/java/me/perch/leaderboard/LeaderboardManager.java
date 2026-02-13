@@ -2,6 +2,7 @@ package me.perch.leaderboard;
 
 import me.perch.Leaderboards;
 import org.bukkit.configuration.file.YamlConfiguration;
+
 import java.io.File;
 import java.util.*;
 
@@ -9,6 +10,9 @@ public class LeaderboardManager {
 
     private final Leaderboards plugin;
     private final Map<String, Leaderboard> leaderboards = new HashMap<>();
+
+    // spacing between leaderboard update starts (in ticks)
+    private static final long STAGGER_TICKS = 10L;
 
     public LeaderboardManager(Leaderboards plugin) {
         this.plugin = plugin;
@@ -25,12 +29,18 @@ public class LeaderboardManager {
         File[] files = folder.listFiles((dir, name) -> name.endsWith(".yml"));
         if (files == null) return;
 
+        Arrays.sort(files, Comparator.comparing(File::getName));
+
+        int index = 0;
+
         for (File file : files) {
 
             String name = file.getName().replace(".yml", "").toLowerCase();
             YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
 
             String type = config.getString("type", "simple").toLowerCase();
+
+            long staggerDelay = index * STAGGER_TICKS;
 
             if (type.equals("simple")) {
 
@@ -55,9 +65,16 @@ public class LeaderboardManager {
                 int save = config.getInt("save-interval", 300);
 
                 leaderboards.put(name,
-                        new SimpleLeaderboard(name, taskDescription, placeholder, update, save));
+                        new SimpleLeaderboard(
+                                name,
+                                taskDescription,
+                                placeholder,
+                                update,
+                                save,
+                                staggerDelay
+                        )
+                );
             }
-
 
             if (type.equals("timed")) {
 
@@ -86,7 +103,7 @@ public class LeaderboardManager {
                     continue;
                 }
 
-                // ✅ LOAD REWARDS
+                // Load rewards
                 Map<Integer, List<String>> rewards = new HashMap<>();
 
                 if (config.contains("rewards")) {
@@ -112,10 +129,19 @@ public class LeaderboardManager {
                 int save = config.getInt("save-interval", 300);
 
                 leaderboards.put(name,
-                        new TimedLeaderboard(name, tasks, rewards, cron, update, save));
+                        new TimedLeaderboard(
+                                name,
+                                tasks,
+                                rewards,
+                                cron,
+                                update,
+                                save,
+                                staggerDelay
+                        )
+                );
             }
 
-
+            index++;
         }
     }
 
@@ -131,7 +157,6 @@ public class LeaderboardManager {
         return leaderboards.keySet();
     }
 
-
     public void shutdown() {
         leaderboards.values().forEach(Leaderboard::shutdown);
     }
@@ -140,5 +165,4 @@ public class LeaderboardManager {
         shutdown();
         loadLeaderboards();
     }
-
 }
