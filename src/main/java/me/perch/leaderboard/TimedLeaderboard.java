@@ -152,8 +152,6 @@ public class TimedLeaderboard extends Leaderboard {
         if (updating || resetting) return;
         updating = true;
 
-        checkReset();
-
         List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
         if (players.isEmpty()) {
             updating = false;
@@ -209,6 +207,9 @@ public class TimedLeaderboard extends Leaderboard {
                     }
 
                     updating = false;
+
+                    checkReset();
+
                     cancel();
                 }
             }
