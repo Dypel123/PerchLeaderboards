@@ -103,7 +103,6 @@ public class LeaderboardManager {
                     continue;
                 }
 
-                // Load rewards
                 Map<Integer, List<String>> rewards = new HashMap<>();
 
                 if (config.contains("rewards")) {

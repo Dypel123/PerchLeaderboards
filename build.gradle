@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id("xyz.jpenilla.run-paper") version "2.3.1"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = 'me.perch'
@@ -21,7 +22,7 @@ repositories {
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
     compileOnly ("me.clip:placeholderapi:2.12.2")
-    compileOnly ("com.cronutils:cron-utils:9.2.0")
+    implementation ("com.cronutils:cron-utils:9.2.0")
 
 }
 
