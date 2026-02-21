@@ -88,9 +88,31 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
                     List<TimedTask> tasks = timed.getTasks();
                     int activeIndex = timed.getCurrentTaskIndex();
 
+                    StringBuilder placeholders = new StringBuilder();
+
+                    for (int i = 0; i < tasks.size(); i++) {
+
+                        TimedTask task = tasks.get(i);
+
+                        if (i == activeIndex) {
+                            placeholders.append("<green>")
+                                    .append(task.getPlaceholder())
+                                    .append("</green>");
+                        } else {
+                            placeholders.append("<gray>")
+                                    .append(task.getPlaceholder())
+                                    .append("</gray>");
+                        }
+
+                        if (i < tasks.size() - 1) {
+                            placeholders.append("<dark_gray>, </dark_gray>");
+                        }
+                    }
+
+                    final String formattedPlaceholders = placeholders.toString();
+
                     plugin.getMessages().send(sender, "info-placeholder",
-                            msg -> msg.replace("{placeholder}",
-                                    tasks.get(activeIndex).getPlaceholder()));
+                            msg -> msg.replace("{placeholder}", formattedPlaceholders));
 
                     plugin.getMessages().send(sender, "info-description",
                             msg -> msg.replace("{description}",
@@ -104,7 +126,6 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
 
                     plugin.getMessages().send(sender, "info-reset",
                             msg -> msg.replace("{time}", time));
-
                 } else {
 
                     plugin.getMessages().send(sender, "info-placeholder",
