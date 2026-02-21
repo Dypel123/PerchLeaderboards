@@ -9,13 +9,14 @@ public class Leaderboards extends JavaPlugin {
 
     private static Leaderboards instance;
     private LeaderboardManager leaderboardManager;
+    private Messages messages;
 
     @Override
     public void onEnable() {
 
         instance = this;
 
-
+        messages = new Messages(this);
         leaderboardManager = new LeaderboardManager(this);
         leaderboardManager.loadLeaderboards();
 
@@ -48,4 +49,6 @@ public class Leaderboards extends JavaPlugin {
     public LeaderboardManager getLeaderboardManager() {
         return leaderboardManager;
     }
+
+    public Messages getMessages() { return messages; }
 }

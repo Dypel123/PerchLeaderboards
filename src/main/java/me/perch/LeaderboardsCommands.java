@@ -3,8 +3,8 @@ package me.perch;
 import me.perch.leaderboard.Leaderboard;
 import me.perch.leaderboard.TimedLeaderboard;
 import me.perch.leaderboard.TimedTask;
-import org.bukkit.ChatColor;
 import org.bukkit.command.*;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -24,13 +24,21 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
                              String[] args) {
 
         if (args.length == 0) {
+
             if (sender.hasPermission("perchlb.admin")) {
-                sender.sendMessage("/perchlb reload");
-                sender.sendMessage("/perchlb info <leaderboard>");
+                plugin.getMessages().send(sender, "admin-usage",
+                        msg -> msg
+                                .replace("{reload}", "/perchlb reload")
+                                .replace("{info}", "/perchlb info <leaderboard>")
+                );
             }
+
             if (sender.hasPermission("perchlb.top")) {
-                sender.sendMessage("/perchlb top <leaderboard> <page>");
+                plugin.getMessages().send(sender, "top-usage",
+                        msg -> msg.replace("{top}", "/perchlb top <leaderboard> <page>")
+                );
             }
+
             return true;
         }
 
@@ -39,23 +47,24 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
             case "reload" -> {
 
                 if (!sender.hasPermission("perchlb.admin")) {
-                    sender.sendMessage(ChatColor.RED + "No permission.");
+                    plugin.getMessages().send(sender, "no-permission");
                     return true;
                 }
 
                 plugin.getLeaderboardManager().reload();
-                sender.sendMessage(ChatColor.GREEN + "Reloaded.");
+                plugin.getMessages().reload();
+                plugin.getMessages().send(sender, "reload-success");
             }
 
             case "info" -> {
 
                 if (!sender.hasPermission("perchlb.admin")) {
-                    sender.sendMessage(ChatColor.RED + "No permission.");
+                    plugin.getMessages().send(sender, "no-permission");
                     return true;
                 }
 
                 if (args.length != 2) {
-                    sender.sendMessage("/perchlb info <leaderboard>");
+                    plugin.getMessages().send(sender, "info-usage");
                     return true;
                 }
 
@@ -64,96 +73,71 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
                                 .getLeaderboard(args[1]);
 
                 if (lb == null) {
-                    sender.sendMessage(ChatColor.RED + "Not found.");
+                    plugin.getMessages().send(sender, "leaderboard-not-found");
                     return true;
                 }
 
-                sender.sendMessage(ChatColor.GOLD + lb.getName());
-                sender.sendMessage(ChatColor.YELLOW + "Type: "
-                        + ChatColor.WHITE + lb.getType());
+                plugin.getMessages().send(sender, "info-header",
+                        msg -> msg.replace("{leaderboard}", lb.getName()));
+
+                plugin.getMessages().send(sender, "info-type",
+                        msg -> msg.replace("{type}", lb.getType()));
 
                 if (lb instanceof TimedLeaderboard timed) {
 
                     List<TimedTask> tasks = timed.getTasks();
+                    int activeIndex = timed.getCurrentTaskIndex();
 
-                    // === SINGLE TASK ===
-                    if (tasks.size() == 1) {
+                    plugin.getMessages().send(sender, "info-placeholder",
+                            msg -> msg.replace("{placeholder}",
+                                    tasks.get(activeIndex).getPlaceholder()));
 
-                        sender.sendMessage(ChatColor.YELLOW + "Placeholder: "
-                                + ChatColor.WHITE + tasks.get(0).getPlaceholder());
-
-                        sender.sendMessage(ChatColor.YELLOW + "Description: "
-                                + ChatColor.WHITE + tasks.get(0).getDescription());
-
-                    }
-                    // === MULTIPLE TASKS ===
-                    else {
-
-                        StringBuilder builder = new StringBuilder();
-                        int activeIndex = timed.getCurrentTaskIndex();
-
-                        for (int i = 0; i < tasks.size(); i++) {
-
-                            builder.append(i == activeIndex
-                                    ? ChatColor.GREEN
-                                    : ChatColor.WHITE);
-
-                            builder.append(tasks.get(i).getPlaceholder());
-
-                            if (i < tasks.size() - 1) {
-                                builder.append(ChatColor.GRAY).append(", ");
-                            }
-                        }
-
-                        sender.sendMessage(ChatColor.YELLOW + "Placeholders: "
-                                + builder);
-
-                        sender.sendMessage(ChatColor.YELLOW + "Description: "
-                                + ChatColor.WHITE
-                                + tasks.get(activeIndex).getDescription());
-                    }
+                    plugin.getMessages().send(sender, "info-description",
+                            msg -> msg.replace("{description}",
+                                    tasks.get(activeIndex).getDescription()));
 
                     long remaining = timed.getTimeUntilResetMillis();
 
-                    if (remaining <= 0) {
-                        sender.sendMessage(ChatColor.YELLOW + "Resets in: "
-                                + ChatColor.WHITE + "Soon");
-                    } else {
-                        sender.sendMessage(ChatColor.YELLOW + "Resets in: "
-                                + ChatColor.WHITE + formatTime(remaining));
-                    }
+                    String time = remaining <= 0
+                            ? "Soon"
+                            : formatTime(remaining);
+
+                    plugin.getMessages().send(sender, "info-reset",
+                            msg -> msg.replace("{time}", time));
 
                 } else {
 
-                    // SIMPLE LEADERBOARD
-                    sender.sendMessage(ChatColor.YELLOW + "Placeholder: "
-                            + ChatColor.WHITE + lb.getPlaceholder());
+                    plugin.getMessages().send(sender, "info-placeholder",
+                            msg -> msg.replace("{placeholder}",
+                                    lb.getPlaceholder()));
 
-                    sender.sendMessage(ChatColor.YELLOW + "Description: "
-                            + ChatColor.WHITE + lb.getDescription());
+                    plugin.getMessages().send(sender, "info-description",
+                            msg -> msg.replace("{description}",
+                                    lb.getDescription()));
 
-                    sender.sendMessage(ChatColor.YELLOW + "Resets in: "
-                            + ChatColor.WHITE + "Permanent");
+                    plugin.getMessages().send(sender, "info-reset",
+                            msg -> msg.replace("{time}", "Permanent"));
                 }
             }
 
             case "top" -> {
 
                 if (!sender.hasPermission("perchlb.top")) {
-                    sender.sendMessage(ChatColor.RED + "No permission.");
+                    plugin.getMessages().send(sender, "no-permission");
                     return true;
                 }
 
                 if (args.length < 2 || args.length > 3) {
-                    sender.sendMessage("/perchlb top <leaderboard> <page>");
+                    plugin.getMessages().send(sender, "top-usage");
                     return true;
                 }
 
-                Leaderboard lb = plugin.getLeaderboardManager()
-                        .getLeaderboard(args[1]);
+                Leaderboard lb =
+                        plugin.getLeaderboardManager()
+                                .getLeaderboard(args[1]);
 
                 if (lb == null) {
-                    sender.sendMessage(ChatColor.RED + "Leaderboard not found.");
+                    plugin.getMessages().send(sender, "leaderboard-not-found");
                     return true;
                 }
 
@@ -162,63 +146,64 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
                 if (args.length == 3) {
                     try {
                         page = Integer.parseInt(args[2]);
-                        if (page <= 0) page = 1;
                     } catch (NumberFormatException ignored) {}
                 }
+
+                if (page < 1) page = 1;
+                if (page > 3) page = 3;
+                final int finalPage = page;
 
                 final int perPage = 10;
                 final int start = (page - 1) * perPage + 1;
                 final int end = start + perPage - 1;
 
-                sender.sendMessage(ChatColor.GOLD + "Top "
-                        + lb.getName() + " - Page " + page);
+                plugin.getMessages().send(sender, "top-header",
+                        msg -> msg
+                                .replace("{leaderboard}", lb.getName())
+                                .replace("{page}", String.valueOf(finalPage))
+                );
 
                 boolean any = false;
 
                 for (int pos = start; pos <= end; pos++) {
 
+                    final int finalPos = pos;
                     String name = lb.getTopName(pos);
                     String value = lb.getTopValue(pos);
 
                     if (name == null || name.isEmpty()) continue;
                     if (value == null || value.isEmpty()) continue;
 
-                    double numericValue;
+                    double numeric;
 
                     try {
-                        numericValue = Double.parseDouble(value);
+                        numeric = Double.parseDouble(value);
                     } catch (NumberFormatException e) {
                         continue;
                     }
 
-                    if (numericValue <= 0) continue;
+                    if (numeric <= 0) continue;
+
+                    String formattedValue = new BigDecimal(value)
+                            .stripTrailingZeros()
+                            .toPlainString();
 
                     any = true;
 
-                    String formattedValue;
-
-                    try {
-                        formattedValue = new java.math.BigDecimal(value)
-                                .stripTrailingZeros()
-                                .toPlainString();
-                    } catch (NumberFormatException e) {
-                        formattedValue = value;
-                    }
-
-                    sender.sendMessage(
-                            ChatColor.GOLD + String.valueOf(pos)
-                                    + ChatColor.DARK_GRAY + " • "
-                                    + ChatColor.WHITE + name
-                                    + ChatColor.GRAY + " (" + formattedValue + ")"
+                    plugin.getMessages().send(sender, "top-entry",
+                            msg -> msg
+                                    .replace("{position}", String.valueOf(finalPos))
+                                    .replace("{name}", name)
+                                    .replace("{score}", formattedValue)
                     );
                 }
 
                 if (!any) {
-                    sender.sendMessage(ChatColor.GRAY + "No entries on this page.");
+                    plugin.getMessages().send(sender, "no-entries");
                 }
             }
 
-            default -> sender.sendMessage(ChatColor.RED + "Unknown subcommand.");
+            default -> plugin.getMessages().send(sender, "unknown-command");
         }
 
         return true;

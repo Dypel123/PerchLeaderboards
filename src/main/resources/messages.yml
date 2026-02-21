@@ -1,0 +1,34 @@
+# --------------------
+# General
+# --------------------
+
+no-permission: "<red>No permission.</red>"
+unknown-command: "<red>Unknown subcommand.</red>"
+leaderboard-not-found: "<red>Leaderboard not found.</red>"
+no-entries: "<gray>No entries on this page.</gray>"
+reload-success: "<green>Reloaded successfully.</green>"
+
+# --------------------
+# Usage Messages
+# --------------------
+
+admin-usage: "<yellow>{reload}</yellow>\n<yellow>{info}</yellow>"
+top-usage: "<yellow>Usage: /perchlb top <leaderboard> <page></yellow>"
+info-usage: "<yellow>Usage: /perchlb info <leaderboard></yellow>"
+
+# --------------------
+# TOP Command
+# --------------------
+
+top-header: "<gold>Top <white>{leaderboard}</white> - Page <white>{page}</white>"
+top-entry: "<gold>{position}</gold><dark_gray> • </dark_gray><white>{name}</white> <gray>({score})</gray>"
+
+# --------------------
+# INFO Command
+# --------------------
+
+info-header: "<gold>{leaderboard}</gold>"
+info-type: "<yellow>Type:</yellow> <white>{type}</white>"
+info-placeholder: "<yellow>Placeholder:</yellow> <white>{placeholder}</white>"
+info-description: "<yellow>Description:</yellow> <white>{description}</white>"
+info-reset: "<yellow>Resets in:</yellow> <white>{time}</white>"
