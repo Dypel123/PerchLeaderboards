@@ -51,11 +51,21 @@ public class Messages {
             raw = replacer.apply(raw);
         }
 
+        if (sender instanceof org.bukkit.entity.Player player) {
+            raw = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, raw);
+        }
+
         sender.sendMessage(parse(raw));
     }
 
     private static final Pattern HEX_PATTERN =
             Pattern.compile("&#([A-Fa-f0-9]{6})");
+
+    private final MiniMessage mini = MiniMessage.miniMessage();
+    private final LegacyComponentSerializer legacyAmp =
+            LegacyComponentSerializer.legacyAmpersand();
+    private final LegacyComponentSerializer legacySection =
+            LegacyComponentSerializer.legacySection();
 
     private Component parse(String message) {
 
@@ -67,18 +77,21 @@ public class Messages {
         StringBuffer buffer = new StringBuffer();
 
         while (matcher.find()) {
-            String color = matcher.group(1);
-            matcher.appendReplacement(buffer, "<#" + color + ">");
+            matcher.appendReplacement(buffer, "<#" + matcher.group(1) + ">");
         }
         matcher.appendTail(buffer);
-
         message = buffer.toString();
 
         if (message.contains("<") && message.contains(">")) {
-            return MiniMessage.miniMessage().deserialize(message);
+
+            Component miniComponent = mini.deserialize(message);
+
+            String serialized = legacyAmp.serialize(miniComponent);
+
+            return legacyAmp.deserialize(serialized);
         }
 
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(message);
+        return legacyAmp.deserialize(message);
     }
 
     public interface Replacer {
