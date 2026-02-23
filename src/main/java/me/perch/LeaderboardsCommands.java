@@ -112,7 +112,7 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
                     final String formattedPlaceholders = placeholders.toString();
 
                     plugin.getMessages().send(sender, "info-placeholder",
-                            msg -> msg.replace("{placeholder}", formattedPlaceholders));
+                            msg -> msg.replace("{placeholder}", formattedPlaceholders), false);
 
                     plugin.getMessages().send(sender, "info-description",
                             msg -> msg.replace("{description}",
@@ -130,7 +130,7 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
 
                     plugin.getMessages().send(sender, "info-placeholder",
                             msg -> msg.replace("{placeholder}",
-                                    lb.getPlaceholder()));
+                                    lb.getPlaceholder()), false);
 
                     plugin.getMessages().send(sender, "info-description",
                             msg -> msg.replace("{description}",

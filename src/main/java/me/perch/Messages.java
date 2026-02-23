@@ -40,10 +40,14 @@ public class Messages {
     }
 
     public void send(CommandSender sender, String path) {
-        send(sender, path, null);
+        send(sender, path, null, true);
     }
 
     public void send(CommandSender sender, String path, Replacer replacer) {
+        send(sender, path, replacer, true);
+    }
+
+    public void send(CommandSender sender, String path, Replacer replacer, boolean parsePlaceholders) {
 
         String raw = config.getString(path, "<red>Missing message: " + path + "</red>");
 
@@ -51,7 +55,7 @@ public class Messages {
             raw = replacer.apply(raw);
         }
 
-        if (sender instanceof org.bukkit.entity.Player player) {
+        if (parsePlaceholders && sender instanceof org.bukkit.entity.Player player) {
             raw = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, raw);
         }
 
