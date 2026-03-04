@@ -76,7 +76,7 @@ public class LeaderboardManager {
                 );
             }
 
-            if (type.equals("timed")) {
+            else if (type.equals("timed")) {
 
                 if (!config.contains("tasks")) {
                     plugin.getLogger().warning("Timed leaderboard '" + name + "' has no tasks section.");
@@ -94,7 +94,8 @@ public class LeaderboardManager {
 
                     tasks.add(new TimedTask(
                             map.get("placeholder").toString(),
-                            map.get("description").toString()
+                            map.get("description").toString(),
+                            0 // no goal for timed lb
                     ));
                 }
 
@@ -138,6 +139,65 @@ public class LeaderboardManager {
                                 staggerDelay
                         )
                 );
+            }
+
+            else if (type.equals("community")) {
+
+                if (!config.contains("tasks")) {
+                    plugin.getLogger().warning("Community leaderboard '" + name + "' has no tasks section.");
+                    continue;
+                }
+
+                List<TimedTask> tasks = new ArrayList<>();
+
+                for (Map<?, ?> map : config.getMapList("tasks")) {
+
+                    if (!map.containsKey("placeholder") || !map.containsKey("description")) {
+                        plugin.getLogger().warning("Invalid task in leaderboard '" + name + "'");
+                        continue;
+                    }
+
+                    double goal = 0;
+
+                    if (map.containsKey("goal")) {
+                        try {
+                            goal = Double.parseDouble(map.get("goal").toString());
+                        } catch (Exception ignored) {}
+                    }
+
+                    tasks.add(new TimedTask(
+                            map.get("placeholder").toString(),
+                            map.get("description").toString(),
+                            goal
+                    ));
+                }
+
+                if (tasks.isEmpty()) {
+                    plugin.getLogger().warning("Community leaderboard '" + name + "' has no valid tasks.");
+                    continue;
+                }
+
+                List<String> rewards = config.getStringList("rewards");
+
+                String cron = config.getString("cron", "0 0 0 1 * ?");
+                int update = config.getInt("update-interval", 30);
+                int save = config.getInt("save-interval", 300);
+
+                leaderboards.put(name,
+                        new CommunityLeaderboard(
+                                name,
+                                tasks,
+                                rewards,
+                                cron,
+                                update,
+                                save,
+                                staggerDelay
+                        )
+                );
+            }
+
+            else {
+                plugin.getLogger().warning("Unknown leaderboard type '" + type + "' in " + name);
             }
 
             index++;

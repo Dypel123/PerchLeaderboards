@@ -21,6 +21,7 @@ info-usage: "<yellow>Usage: /perchlb info <leaderboard></yellow>"
 # --------------------
 
 top-header: "<gold>Top <white>{leaderboard}</white> - Page <white>{page}</white>"
+top-community-progress: "<gray>Progress:</gray> <green>{progress}</green><dark_gray>/</dark_gray><yellow>{goal}</yellow> ({percentage})"
 top-entry: "<gold>{position}</gold><dark_gray> • </dark_gray><white>{name}</white> <gray>({score})</gray>"
 
 # --------------------

@@ -1,5 +1,6 @@
 package me.perch;
 
+import me.perch.leaderboard.CommunityLeaderboard;
 import me.perch.leaderboard.Leaderboard;
 import me.perch.leaderboard.TimedLeaderboard;
 import me.perch.leaderboard.TimedTask;
@@ -126,6 +127,51 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
 
                     plugin.getMessages().send(sender, "info-reset",
                             msg -> msg.replace("{time}", time));
+                }
+
+                if (lb instanceof CommunityLeaderboard community) {
+
+                    List<TimedTask> tasks = community.getTasks();
+                    int activeIndex = community.getCurrentTaskIndex();
+
+                    StringBuilder placeholders = new StringBuilder();
+
+                    for (int i = 0; i < tasks.size(); i++) {
+
+                        TimedTask task = tasks.get(i);
+
+                        if (i == activeIndex) {
+                            placeholders.append("<green>")
+                                    .append(task.getPlaceholder())
+                                    .append("</green>");
+                        } else {
+                            placeholders.append("<gray>")
+                                    .append(task.getPlaceholder())
+                                    .append("</gray>");
+                        }
+
+                        if (i < tasks.size() - 1) {
+                            placeholders.append("<dark_gray>, </dark_gray>");
+                        }
+                    }
+
+                    final String formattedPlaceholders = placeholders.toString();
+
+                    plugin.getMessages().send(sender, "info-placeholder",
+                            msg -> msg.replace("{placeholder}", formattedPlaceholders), false);
+
+                    plugin.getMessages().send(sender, "info-description",
+                            msg -> msg.replace("{description}",
+                                    tasks.get(activeIndex).getDescription()));
+
+                    long remaining = community.getTimeUntilResetMillis();
+
+                    String time = remaining <= 0
+                            ? "Soon"
+                            : formatTime(remaining);
+
+                    plugin.getMessages().send(sender, "info-reset",
+                            msg -> msg.replace("{time}", time));
                 } else {
 
                     plugin.getMessages().send(sender, "info-placeholder",
@@ -183,6 +229,33 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
                                 .replace("{leaderboard}", lb.getName())
                                 .replace("{page}", String.valueOf(finalPage))
                 );
+
+                if (lb instanceof CommunityLeaderboard community) {
+
+                    double progress = community.getCurrentProgress();
+                    double goal = community.getCurrentGoal();
+                    double percent = goal <= 0 ? 0 : (progress / goal) * 100;
+
+                    String formattedProgress = new BigDecimal(progress)
+                            .stripTrailingZeros()
+                            .toPlainString();
+
+                    String formattedGoal = new BigDecimal(goal)
+                            .stripTrailingZeros()
+                            .toPlainString();
+
+                    String formattedPercent = new BigDecimal(percent)
+                            .setScale(2, java.math.RoundingMode.HALF_UP)
+                            .stripTrailingZeros()
+                            .toPlainString();
+
+                    plugin.getMessages().send(sender, "top-community-progress",
+                            msg -> msg
+                                    .replace("{progress}", formattedProgress)
+                                    .replace("{goal}", formattedGoal)
+                                    .replace("{percentage}", formattedPercent)
+                    );
+                }
 
                 boolean any = false;
 

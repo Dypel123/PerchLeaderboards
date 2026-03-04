@@ -4,6 +4,7 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.perch.Leaderboards;
 import me.perch.leaderboard.Leaderboard;
 import me.perch.leaderboard.TimedLeaderboard;
+import me.perch.leaderboard.CommunityLeaderboard;
 import org.bukkit.entity.Player;
 import java.util.Locale;
 
@@ -53,6 +54,10 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
 
                 if (leaderboard instanceof TimedLeaderboard timed) {
                     return timed.getCurrentTaskDescription();
+                }
+
+                if (leaderboard instanceof CommunityLeaderboard community) {
+                    return community.getCurrentTaskDescription();
                 }
 
                 return leaderboard != null
@@ -144,7 +149,57 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                     return formatDuration(millis);
                 }
 
+                if (leaderboard instanceof CommunityLeaderboard community) {
+
+                    long millis = community.getTimeUntilResetMillis();
+                    if (millis <= 0) return "Resetting...";
+
+                    return formatDuration(millis);
+                }
+
                 return "Permanent";
+            }
+
+            // %perchlb_goal_<leaderboard>%
+            if (params.startsWith("goal_")) {
+
+                String name = params.substring("goal_".length());
+                Leaderboard leaderboard =
+                        plugin.getLeaderboardManager().getLeaderboard(name);
+
+                if (leaderboard instanceof CommunityLeaderboard community) {
+
+                    double goal = community.getCurrentGoal();
+
+                    if (goal == Math.floor(goal)) {
+                        return String.valueOf((long) goal);
+                    }
+
+                    return String.valueOf(goal);
+                }
+
+                return "";
+            }
+
+            // %perchlb_progress_<leaderboard>%
+            if (params.startsWith("progress_")) {
+
+                String name = params.substring("progress_".length());
+                Leaderboard leaderboard =
+                        plugin.getLeaderboardManager().getLeaderboard(name);
+
+                if (leaderboard instanceof CommunityLeaderboard community) {
+
+                    double progress = community.getCurrentProgress();
+
+                    if (progress == Math.floor(progress)) {
+                        return String.valueOf((long) progress);
+                    }
+
+                    return String.valueOf(progress);
+                }
+
+                return "";
             }
 
         } catch (Exception ignored) {}
