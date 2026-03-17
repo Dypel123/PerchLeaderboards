@@ -97,6 +97,8 @@ public class CommunityLeaderboard extends Leaderboard {
         return tasks.get(currentTaskIndex).getGoal();
     }
 
+    public double getCurrentThreshold() { return tasks.get(currentTaskIndex).getThreshold(); }
+
     public double getCurrentProgress() {
         return values.values()
                 .stream()
@@ -268,13 +270,15 @@ public class CommunityLeaderboard extends Leaderboard {
         double goal = getCurrentGoal();
         if (total < goal) return;
 
+        double threshold = getCurrentThreshold();
+
         for (Map.Entry<UUID, Double> entry : values.entrySet()) {
 
-            if (entry.getValue() <= 0) continue;
+            double playerScore = entry.getValue();
+            if (playerScore < threshold) continue;
 
             UUID uuid = entry.getKey();
             String playerName = Bukkit.getOfflinePlayer(uuid).getName();
-            double playerScore = entry.getValue();
 
             if (playerName == null) continue;
 

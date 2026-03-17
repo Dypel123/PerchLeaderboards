@@ -95,7 +95,8 @@ public class LeaderboardManager {
                     tasks.add(new TimedTask(
                             map.get("placeholder").toString(),
                             map.get("description").toString(),
-                            0 // no goal for timed lb
+                            0, // no goal for timed lb
+                            0 // also no threshold
                     ));
                 }
 
@@ -157,7 +158,7 @@ public class LeaderboardManager {
                         continue;
                     }
 
-                    double goal = 0;
+                    double goal = 100;
 
                     if (map.containsKey("goal")) {
                         try {
@@ -165,10 +166,19 @@ public class LeaderboardManager {
                         } catch (Exception ignored) {}
                     }
 
+                    double threshold = 1;
+
+                    if (map.containsKey("threshold")) {
+                        try {
+                            threshold = Double.parseDouble(map.get("threshold").toString());
+                        } catch (Exception ignored) {}
+                    }
+
                     tasks.add(new TimedTask(
                             map.get("placeholder").toString(),
                             map.get("description").toString(),
-                            goal
+                            goal,
+                            threshold
                     ));
                 }
 
