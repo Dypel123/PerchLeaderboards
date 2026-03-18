@@ -22,7 +22,7 @@ info-usage: "<yellow>Usage: /perchlb info <leaderboard></yellow>"
 
 top-header: "<gold>Top <white>{leaderboard}</white> - Page <white>{page}</white>"
 top-community-progress: "<gray>Progress:</gray> <green>{progress}</green><dark_gray>/</dark_gray><yellow>{goal}</yellow> ({percentage})"
-top-community-playerprogress: "<gray>Your progress:</gray> <green>%perchlb_playervalue_{leaderboard}%</green> <dark_gray>/</dark_gray> <yellow>%perchlb_threshold_{leaderboard}%</yellow> %perchlb_thresholdmark_{leaderboard}%"
+top-community-playerprogress: "<gold>Threshold&8:</gold> <white>%perchlb_playervalue_{leaderboard}%</white> <dark_gray>/</dark_gray> <white>%perchlb_threshold_{leaderboard}%</white> &8| &8(&r%perchlb_thresholdmark_{leaderboard}%&8)"
 top-entry: "<gold>{position}</gold><dark_gray> • </dark_gray><white>{name}</white> <gray>({score})</gray>"
 
 # --------------------
