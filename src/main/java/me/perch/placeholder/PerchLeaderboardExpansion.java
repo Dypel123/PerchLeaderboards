@@ -3,6 +3,7 @@ package me.perch.placeholder;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import me.perch.Leaderboards;
 import me.perch.leaderboard.Leaderboard;
+import me.perch.leaderboard.SimpleLeaderboard;
 import me.perch.leaderboard.TimedLeaderboard;
 import me.perch.leaderboard.CommunityLeaderboard;
 import org.bukkit.entity.Player;
@@ -200,6 +201,67 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                 }
 
                 return "";
+            }
+
+            // %perchlb_threshold_<leaderboard>%
+            if (params.startsWith("threshold_")) {
+
+                String name = params.substring("threshold_".length());
+                Leaderboard leaderboard =
+                        plugin.getLeaderboardManager().getLeaderboard(name);
+
+                if (leaderboard instanceof CommunityLeaderboard community) {
+
+                    double threshold = community.getCurrentThreshold();
+
+                    if (threshold == Math.floor(threshold)) {
+                        return String.valueOf((long) threshold);
+                    }
+
+                    return String.valueOf(threshold);
+                }
+
+                return "";
+            }
+
+            // %perchlb_thresholdmark_<leaderboard>%
+            if (params.startsWith("thresholdmark_")) {
+
+                if (player == null) return "";
+
+                String name = params.substring("thresholdmark_".length());
+                Leaderboard leaderboard =
+                        plugin.getLeaderboardManager().getLeaderboard(name);
+
+                if (leaderboard instanceof CommunityLeaderboard community) {
+
+                    double value = community.getPlayerValue(player.getUniqueId());
+                    double threshold = community.getCurrentThreshold();
+
+                    return value >= threshold ? "&e✔&r" : "&c✘&r";
+                }
+
+                return "";
+            }
+
+            // %perchlb_playervalue_<leaderboard>%
+            if (params.startsWith("playervalue_")) {
+
+                if (player == null) return "";
+
+                String name = params.substring("playervalue_".length());
+                Leaderboard leaderboard =
+                        plugin.getLeaderboardManager().getLeaderboard(name);
+
+                if (leaderboard == null) return "";
+
+                double value = leaderboard.getPlayerValue(player.getUniqueId());
+
+                if (value == Math.floor(value)) {
+                    return String.valueOf((long) value);
+                }
+
+                return String.valueOf(value);
             }
 
         } catch (Exception ignored) {}

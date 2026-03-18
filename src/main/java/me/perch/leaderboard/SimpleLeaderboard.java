@@ -74,6 +74,11 @@ public class SimpleLeaderboard extends Leaderboard {
         return String.valueOf(cachedTop.get(pos - 1).getValue());
     }
 
+    @Override
+    public double getPlayerValue(UUID uuid) {
+        return values.getOrDefault(uuid, 0.0);
+    }
+
     private void startTasks() {
 
         updateTask = Bukkit.getScheduler().runTaskTimer(

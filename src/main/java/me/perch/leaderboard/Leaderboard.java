@@ -1,5 +1,7 @@
 package me.perch.leaderboard;
 
+import java.util.UUID;
+
 public abstract class Leaderboard {
 
     protected final String name;
@@ -15,6 +17,8 @@ public abstract class Leaderboard {
     public String getName() { return name; }
     public String getType() { return type; }
     public String getDescription() { return description; }
+
+    public abstract double getPlayerValue(UUID uuid);
 
     public abstract String getPlaceholder();
     public abstract String getTopName(int position);

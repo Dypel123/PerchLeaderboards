@@ -101,6 +101,11 @@ public class TimedLeaderboard extends Leaderboard {
         return currentTaskIndex;
     }
 
+    @Override
+    public double getPlayerValue(UUID uuid) {
+        return values.getOrDefault(uuid, 0.0);
+    }
+
     public long getTimeUntilResetMillis() {
 
         ZonedDateTime now = ZonedDateTime.now();

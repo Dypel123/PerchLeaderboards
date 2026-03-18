@@ -106,6 +106,11 @@ public class CommunityLeaderboard extends Leaderboard {
                 .sum();
     }
 
+    @Override
+    public double getPlayerValue(UUID uuid) {
+        return values.getOrDefault(uuid, 0.0);
+    }
+
     public List<TimedTask> getTasks() {
         return tasks;
     }

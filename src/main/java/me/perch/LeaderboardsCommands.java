@@ -255,6 +255,10 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
                                     .replace("{goal}", formattedGoal)
                                     .replace("{percentage}", formattedPercent)
                     );
+
+                    plugin.getMessages().send(sender, "top-community-playerprogress",
+                            msg -> msg.replace("{leaderboard}", lb.getName())
+                    );
                 }
 
                 boolean any = false;
