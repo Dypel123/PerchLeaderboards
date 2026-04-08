@@ -236,6 +236,7 @@ public class TimedLeaderboard extends Leaderboard {
 
         // DISTRIBUTE REWARDS BEFORE CLEARING
         distributeRewards();
+        broadcastResetMessage();
 
         // Rotate task
         currentTaskIndex++;

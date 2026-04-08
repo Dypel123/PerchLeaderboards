@@ -247,6 +247,7 @@ public class CommunityLeaderboard extends Leaderboard {
         resetting = true;
 
         distributeCommunityRewards();
+        broadcastResetMessage();
 
         currentTaskIndex++;
         if (currentTaskIndex >= tasks.size()) {

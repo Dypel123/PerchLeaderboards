@@ -1,5 +1,8 @@
 package me.perch.leaderboard;
 
+import me.perch.Leaderboards;
+import org.bukkit.Bukkit;
+
 import java.util.UUID;
 
 public abstract class Leaderboard {
@@ -24,4 +27,17 @@ public abstract class Leaderboard {
     public abstract String getTopName(int position);
     public abstract String getTopValue(int position);
     public abstract void shutdown();
+
+    protected void broadcastResetMessage() {
+
+        Leaderboards plugin = Leaderboards.getInstance();
+
+        Bukkit.getOnlinePlayers().forEach(player ->
+                plugin.getMessages().send(
+                        player,
+                        "leaderboard-reset",
+                        msg -> msg.replace("{leaderboard}", name)
+                )
+        );
+    }
 }
