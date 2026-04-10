@@ -19,3 +19,7 @@ permissions:
   perchlb.top:
     description: Allows viewing leaderboard tops
     default: true
+
+  perchlb.ignore:
+    description: Prevents player from being tracked in leaderboards
+    default: false

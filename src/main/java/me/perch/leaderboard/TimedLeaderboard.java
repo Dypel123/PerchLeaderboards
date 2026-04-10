@@ -188,6 +188,10 @@ public class TimedLeaderboard extends Leaderboard {
                     Player player = players.get(index++);
                     processed++;
 
+                    if (player.hasPermission("perchlb.ignore")) {
+                        continue;
+                    }
+
                     String result =
                             PlaceholderAPI.setPlaceholders(player, activePlaceholder);
 
@@ -273,6 +277,10 @@ public class TimedLeaderboard extends Leaderboard {
 
                     Player player = players.get(index++);
                     processed++;
+
+                    if (player.hasPermission("perchlb.ignore")) {
+                        continue;
+                    }
 
                     String result =
                             PlaceholderAPI.setPlaceholders(player, placeholder);

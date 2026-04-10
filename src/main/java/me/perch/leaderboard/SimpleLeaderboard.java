@@ -124,6 +124,10 @@ public class SimpleLeaderboard extends Leaderboard {
                     Player player = players.get(index++);
                     processed++;
 
+                    if (player.hasPermission("perchlb.ignore")) {
+                        continue;
+                    }
+
                     String result =
                             PlaceholderAPI.setPlaceholders(player, placeholder);
 
