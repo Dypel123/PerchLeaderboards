@@ -6,7 +6,7 @@ no-permission: "<red>No permission.</red>"
 unknown-command: "<red>Unknown subcommand.</red>"
 leaderboard-not-found: "<red>Leaderboard not found.</red>"
 no-entries: "<gray>No entries on this page.</gray>"
-reload-success: "<green>Reloaded successfully.</green>"
+reload-success: "&#008000Reloaded successfully!"
 leaderboard-reset: "<gray>Leaderboard</gray> <gold>{leaderboard}</gold> <gray>has been reset!</gray>"
 
 # --------------------
@@ -14,17 +14,17 @@ leaderboard-reset: "<gray>Leaderboard</gray> <gold>{leaderboard}</gold> <gray>ha
 # --------------------
 
 admin-usage: "<yellow>{reload}</yellow>\n<yellow>{info}</yellow>"
-top-usage: "<yellow>Usage: /perchlb top <leaderboard> <page></yellow>"
-info-usage: "<yellow>Usage: /perchlb info <leaderboard></yellow>"
+top-usage: "<yellow>Usage: /evergreenlb top <leaderboard> <page></yellow>"
+info-usage: "<yellow>Usage: /evergreenlb info <leaderboard></yellow>"
 
 # --------------------
 # TOP Command
 # --------------------
 
-top-header: "<gold>Top <white>{leaderboard}</white> - Page <white>{page}</white>"
-top-community-progress: "<gray>Progress:</gray> <green>{progress}</green><dark_gray>/</dark_gray><yellow>{goal}</yellow> ({percentage})"
-top-community-playerprogress: "<gold>Threshold&8:</gold> <white>%perchlb_playervalue_{leaderboard}%</white> <dark_gray>/</dark_gray> <white>%perchlb_threshold_{leaderboard}%</white> &8| &8(&r%perchlb_thresholdmark_{leaderboard}%&8)"
-top-entry: "<gold>{position}</gold><dark_gray> • </dark_gray><white>{name}</white> <gray>({score})</gray>"
+top-header: "&#48ab76Top <white>%evergreenlb_description_{leaderboard}%</white> - Page <white>{page}</white>"
+top-community-progress: "&#48ab76Progress&8: &f{progress}&8 / &f{goal} &8| (&f{percentage}%&8)"
+top-community-playerprogress: "&#48ab76Threshold&8: <white>%evergreenlb_playervalue_{leaderboard}%</white> <dark_gray>/</dark_gray> <white>%evergreenlb_threshold_{leaderboard}%</white> &8| &8(&r%evergreenlb_thresholdmark_{leaderboard}%&8)"
+top-entry: "&#48ab76{position}<dark_gray> • </dark_gray><white>{name}</white> <gray>({score})</gray>"
 
 # --------------------
 # INFO Command

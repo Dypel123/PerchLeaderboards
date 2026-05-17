@@ -1,7 +1,7 @@
-package me.perch.leaderboard;
+package evergreen.leaderboard;
 
 import me.clip.placeholderapi.PlaceholderAPI;
-import me.perch.Leaderboards;
+import evergreen.Leaderboards;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -124,7 +124,7 @@ public class SimpleLeaderboard extends Leaderboard {
                     Player player = players.get(index++);
                     processed++;
 
-                    if (player.hasPermission("perchlb.ignore")) {
+                    if (player.hasPermission("evergreen.leaderboards.ignore")) {
                         continue;
                     }
 

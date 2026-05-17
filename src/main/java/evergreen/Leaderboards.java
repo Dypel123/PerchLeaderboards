@@ -1,7 +1,7 @@
-package me.perch;
+package evergreen;
 
-import me.perch.leaderboard.LeaderboardManager;
-import me.perch.placeholder.PerchLeaderboardExpansion;
+import evergreen.leaderboard.LeaderboardManager;
+import evergreen.placeholder.EvergreenLeaderboardExpansion;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -20,14 +20,14 @@ public class Leaderboards extends JavaPlugin {
         leaderboardManager = new LeaderboardManager(this);
         leaderboardManager.loadLeaderboards();
 
-        getCommand("perchlb").setExecutor(new LeaderboardsCommands(this));
-        getCommand("perchlb").setTabCompleter(new LeaderboardsCommands(this));
+        getCommand("evergreenlb").setExecutor(new LeaderboardsCommands(this));
+        getCommand("evergreenlb").setTabCompleter(new LeaderboardsCommands(this));
 
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            new PerchLeaderboardExpansion(this).register();
+            new EvergreenLeaderboardExpansion(this).register();
         }
 
-        getLogger().info("PerchLeaderboards enabled.");
+        getLogger().info("EvergreenLeaderboards enabled.");
     }
 
     @Override

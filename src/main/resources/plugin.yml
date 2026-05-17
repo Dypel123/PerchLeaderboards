@@ -1,25 +1,25 @@
-name: PerchLeaderboards
+name: EvergreenLeaderboards
 version: '${version}'
-main: me.perch.Leaderboards
+main: evergreen.Leaderboards
 api-version: '1.21'
 author: Dypel
 description: Leaderboard system with time-based tracking
 depend: [PlaceholderAPI]
 
 commands:
-  perchlb:
-    description: Main PerchLeaderboards command
-    usage: /perchlb <reload|info|top>
+  evergreenlb:
+    description: Main EvergreenLeaderboards command
+    usage: /evergreenlb <reload|info|top>
 
 permissions:
-  perchlb.admin:
-    description: Allows access to all PerchLeaderboards admin commands
+  evergreen.leaderboards.admin:
+    description: Allows access to all EvergreenLeaderboards admin commands
     default: op
 
-  perchlb.top:
+  evergreen.leaderboards.top:
     description: Allows viewing leaderboard tops
     default: true
 
-  perchlb.ignore:
+  evergreen.leaderboards.ignore:
     description: Prevents player from being tracked in leaderboards
     default: false

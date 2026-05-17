@@ -4,7 +4,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
-group = 'me.perch'
+group = 'evergreen'
 version = '1.2.4'
 
 repositories {

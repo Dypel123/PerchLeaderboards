@@ -1,4 +1,4 @@
-package me.perch.leaderboard;
+package evergreen.leaderboard;
 
 public class TimedTask {
 

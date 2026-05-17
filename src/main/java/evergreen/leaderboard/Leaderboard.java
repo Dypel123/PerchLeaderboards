@@ -1,6 +1,6 @@
-package me.perch.leaderboard;
+package evergreen.leaderboard;
 
-import me.perch.Leaderboards;
+import evergreen.Leaderboards;
 import org.bukkit.Bukkit;
 
 import java.util.UUID;

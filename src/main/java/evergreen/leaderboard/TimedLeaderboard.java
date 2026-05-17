@@ -1,4 +1,4 @@
-package me.perch.leaderboard;
+package evergreen.leaderboard;
 
 import com.cronutils.model.Cron;
 import com.cronutils.model.CronType;
@@ -6,7 +6,7 @@ import com.cronutils.model.definition.CronDefinitionBuilder;
 import com.cronutils.model.time.ExecutionTime;
 import com.cronutils.parser.CronParser;
 import me.clip.placeholderapi.PlaceholderAPI;
-import me.perch.Leaderboards;
+import evergreen.Leaderboards;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -20,12 +20,12 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-public class CommunityLeaderboard extends Leaderboard {
+public class TimedLeaderboard extends Leaderboard {
 
     private static final int CACHE_LIMIT = 30;
 
     private final List<TimedTask> tasks;
-    private final List<String> rewardCommands;
+    private final Map<Integer, List<String>> rewards;
 
     private int currentTaskIndex = 0;
 
@@ -49,21 +49,21 @@ public class CommunityLeaderboard extends Leaderboard {
     private BukkitTask updateTask;
     private BukkitTask saveTask;
 
-    public CommunityLeaderboard(String name,
-                                List<TimedTask> tasks,
-                                List<String> rewardCommands,
-                                String cronExpression,
-                                int updateInterval,
-                                int saveInterval,
-                                long startDelay) {
+    public TimedLeaderboard(String name,
+                            List<TimedTask> tasks,
+                            Map<Integer, List<String>> rewards,
+                            String cronExpression,
+                            int updateInterval,
+                            int saveInterval,
+                            long startDelay) {
 
-        super(name, "community", "");
+        super(name, "timed", "");
 
         if (tasks == null || tasks.isEmpty())
-            throw new IllegalArgumentException("Community leaderboard must have at least one task.");
+            throw new IllegalArgumentException("Timed leaderboard must have at least one task.");
 
         this.tasks = tasks;
-        this.rewardCommands = rewardCommands != null ? rewardCommands : new ArrayList<>();
+        this.rewards = rewards != null ? rewards : new HashMap<>();
         this.updateInterval = updateInterval;
         this.saveInterval = saveInterval;
         this.startDelay = startDelay;
@@ -93,30 +93,17 @@ public class CommunityLeaderboard extends Leaderboard {
         return tasks.get(currentTaskIndex).getDescription();
     }
 
-    public double getCurrentGoal() {
-        return tasks.get(currentTaskIndex).getGoal();
-    }
-
-    public double getCurrentThreshold() { return tasks.get(currentTaskIndex).getThreshold(); }
-
-    public double getCurrentProgress() {
-        return values.values()
-                .stream()
-                .mapToDouble(Double::doubleValue)
-                .sum();
-    }
-
-    @Override
-    public double getPlayerValue(UUID uuid) {
-        return values.getOrDefault(uuid, 0.0);
-    }
-
     public List<TimedTask> getTasks() {
         return tasks;
     }
 
     public int getCurrentTaskIndex() {
         return currentTaskIndex;
+    }
+
+    @Override
+    public double getPlayerValue(UUID uuid) {
+        return values.getOrDefault(uuid, 0.0);
     }
 
     public long getTimeUntilResetMillis() {
@@ -171,6 +158,7 @@ public class CommunityLeaderboard extends Leaderboard {
         );
     }
 
+
     private void updateSync() {
 
         if (updating || resetting) return;
@@ -200,7 +188,7 @@ public class CommunityLeaderboard extends Leaderboard {
                     Player player = players.get(index++);
                     processed++;
 
-                    if (player.hasPermission("perchlb.ignore")) {
+                    if (player.hasPermission("evergreen.leaderboards.ignore")) {
                         continue;
                     }
 
@@ -250,9 +238,11 @@ public class CommunityLeaderboard extends Leaderboard {
 
         resetting = true;
 
-        distributeCommunityRewards();
+        // DISTRIBUTE REWARDS BEFORE CLEARING
+        distributeRewards();
         broadcastResetMessage();
 
+        // Rotate task
         currentTaskIndex++;
         if (currentTaskIndex >= tasks.size()) {
             currentTaskIndex = 0;
@@ -264,41 +254,76 @@ public class CommunityLeaderboard extends Leaderboard {
         values.clear();
         cachedTop = new ArrayList<>();
 
-        dirty = true;
-        resetting = false;
+        List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
+        if (players.isEmpty()) {
+            dirty = true;
+            resetting = false;
+            return;
+        }
+
+        final int batchSize = 10;
+        final String placeholder = getPlaceholder();
+
+        new BukkitRunnable() {
+
+            int index = 0;
+
+            @Override
+            public void run() {
+
+                int processed = 0;
+
+                while (index < players.size() && processed < batchSize) {
+
+                    Player player = players.get(index++);
+                    processed++;
+
+                    if (player.hasPermission("evergreen.leaderboards.ignore")) {
+                        continue;
+                    }
+
+                    String result =
+                            PlaceholderAPI.setPlaceholders(player, placeholder);
+
+                    try {
+                        double value = Double.parseDouble(result.replace(",", ""));
+                        baseline.put(player.getUniqueId(), value);
+                    } catch (Exception ignored) {}
+                }
+
+                if (index >= players.size()) {
+
+                    dirty = true;
+                    resetting = false;
+                    cancel();
+                }
+            }
+
+        }.runTaskTimer(Leaderboards.getInstance(), 0L, 1L);
     }
 
-    private void distributeCommunityRewards() {
+    private void distributeRewards() {
 
-        if (rewardCommands.isEmpty()) return;
-        if (values.isEmpty()) return;
+        if (rewards.isEmpty()) return;
+        if (cachedTop.isEmpty()) return;
 
-        double total = values.values().stream()
-                .mapToDouble(Double::doubleValue)
-                .sum();
+        for (Map.Entry<Integer, List<String>> entry : rewards.entrySet()) {
 
-        double goal = getCurrentGoal();
-        if (total < goal) return;
+            int position = entry.getKey();
+            if (position <= 0 || position > cachedTop.size()) continue;
 
-        double threshold = getCurrentThreshold();
-
-        for (Map.Entry<UUID, Double> entry : values.entrySet()) {
-
-            double playerScore = entry.getValue();
-            if (playerScore < threshold) continue;
-
-            UUID uuid = entry.getKey();
+            UUID uuid = cachedTop.get(position - 1).getKey();
             String playerName = Bukkit.getOfflinePlayer(uuid).getName();
+            double score = cachedTop.get(position - 1).getValue();
 
             if (playerName == null) continue;
 
-            for (String command : rewardCommands) {
+            for (String command : entry.getValue()) {
 
                 String parsed = command
                         .replace("{player}", playerName)
-                        .replace("{score}", String.valueOf(playerScore))
-                        .replace("{total}", String.valueOf(total))
-                        .replace("{goal}", String.valueOf(goal));
+                        .replace("{position}", String.valueOf(position))
+                        .replace("{score}", String.valueOf(score));
 
                 Bukkit.dispatchCommand(
                         Bukkit.getConsoleSender(),
@@ -377,9 +402,15 @@ public class CommunityLeaderboard extends Leaderboard {
     @Override
     public void shutdown() {
 
-        if (updateTask != null) updateTask.cancel();
-        if (saveTask != null) saveTask.cancel();
+        if (updateTask != null) {
+            updateTask.cancel();
+        }
+
+        if (saveTask != null) {
+            saveTask.cancel();
+        }
 
         saveIfDirtyAsync();
     }
+
 }

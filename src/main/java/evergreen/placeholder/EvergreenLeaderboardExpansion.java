@@ -1,34 +1,35 @@
-package me.perch.placeholder;
+package evergreen.placeholder;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import me.perch.Leaderboards;
-import me.perch.leaderboard.Leaderboard;
-import me.perch.leaderboard.SimpleLeaderboard;
-import me.perch.leaderboard.TimedLeaderboard;
-import me.perch.leaderboard.CommunityLeaderboard;
+import evergreen.Leaderboards;
+import evergreen.leaderboard.Leaderboard;
+import evergreen.leaderboard.TimedLeaderboard;
+import evergreen.leaderboard.CommunityLeaderboard;
 import org.bukkit.entity.Player;
+import org.jspecify.annotations.NonNull;
+
 import java.util.Locale;
 
-public class PerchLeaderboardExpansion extends PlaceholderExpansion {
+public class EvergreenLeaderboardExpansion extends PlaceholderExpansion {
 
     private final Leaderboards plugin;
 
-    public PerchLeaderboardExpansion(Leaderboards plugin) {
+    public EvergreenLeaderboardExpansion(Leaderboards plugin) {
         this.plugin = plugin;
     }
 
     @Override
-    public String getIdentifier() {
-        return "perchlb";
+    public @NonNull String getIdentifier() {
+        return "evergreenlb";
     }
 
     @Override
-    public String getAuthor() {
-        return "Perch";
+    public @NonNull String getAuthor() {
+        return "Evergreen";
     }
 
     @Override
-    public String getVersion() {
+    public @NonNull String getVersion() {
         return plugin.getDescription().getVersion();
     }
 
@@ -46,7 +47,7 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
 
         try {
 
-            // %perchlb_description_<leaderboard>%
+            // %evergreenlb_description_<leaderboard>%
             if (params.startsWith("description_")) {
 
                 String name = params.substring("description_".length());
@@ -68,7 +69,7 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
             }
 
 
-            // %perchlb_topname_<leaderboard>_<position>%
+            // %evergreenlb_topname_<leaderboard>_<position>%
             if (params.startsWith("topname_")) {
 
                 String[] split = params.split("_");
@@ -85,7 +86,7 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                         : "";
             }
 
-            // %perchlb_topvalueraw_<leaderboard>_<position>%
+            // %evergreenlb_topvalueraw_<leaderboard>_<position>%
             if (params.startsWith("topvalueraw_")) {
 
                 String[] split = params.split("_");
@@ -100,10 +101,17 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                 if (leaderboard == null) return "";
 
                 String raw = leaderboard.getTopValue(position);
-                return raw != null ? raw : "";
+                if (raw == null || raw.isEmpty()) return "";
+
+                try {
+                    double value = Double.parseDouble(raw);
+                    return format(value);
+                } catch (NumberFormatException e) {
+                    return raw;
+                }
             }
 
-            // %perchlb_topvalue_<leaderboard>_<position>%
+            // %evergreenlb_topvalue_<leaderboard>_<position>%
             if (params.startsWith("topvalue_")) {
 
                 String[] split = params.split("_");
@@ -123,11 +131,7 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                 try {
                     double value = Double.parseDouble(raw);
 
-                    if (value == Math.floor(value)) {
-                        return String.valueOf((long) value);
-                    }
-
-                    return String.valueOf(value);
+                    return format(value);
 
                 } catch (NumberFormatException e) {
                     return raw;
@@ -135,7 +139,7 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
             }
 
 
-            // %perchlb_timeuntil_<leaderboard>%
+            // %evergreenlb_timeuntil_<leaderboard>%
             if (params.startsWith("timeuntil_")) {
 
                 String name = params.substring("timeuntil_".length());
@@ -161,7 +165,7 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                 return "Permanent";
             }
 
-            // %perchlb_goal_<leaderboard>%
+            // %evergreenlb_goal_<leaderboard>%
             if (params.startsWith("goal_")) {
 
                 String name = params.substring("goal_".length());
@@ -182,7 +186,7 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                 return "";
             }
 
-            // %perchlb_progress_<leaderboard>%
+            // %evergreenlb_progress_<leaderboard>%
             if (params.startsWith("progress_")) {
 
                 String name = params.substring("progress_".length());
@@ -203,7 +207,7 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                 return "";
             }
 
-            // %perchlb_threshold_<leaderboard>%
+            // %evergreenlb_threshold_<leaderboard>%
             if (params.startsWith("threshold_")) {
 
                 String name = params.substring("threshold_".length());
@@ -224,7 +228,7 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                 return "";
             }
 
-            // %perchlb_thresholdmark_<leaderboard>%
+            // %evergreenlb_thresholdmark_<leaderboard>%
             if (params.startsWith("thresholdmark_")) {
 
                 if (player == null) return "";
@@ -244,7 +248,7 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
                 return "";
             }
 
-            // %perchlb_playervalue_<leaderboard>%
+            // %evergreenlb_playervalue_<leaderboard>%
             if (params.startsWith("playervalue_")) {
 
                 if (player == null) return "";
@@ -257,11 +261,7 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
 
                 double value = leaderboard.getPlayerValue(player.getUniqueId());
 
-                if (value == Math.floor(value)) {
-                    return String.valueOf((long) value);
-                }
-
-                return String.valueOf(value);
+                return format(value);
             }
 
         } catch (Exception ignored) {}
@@ -282,5 +282,11 @@ public class PerchLeaderboardExpansion extends PlaceholderExpansion {
         long minutes = seconds / 60;
 
         return days + " days, " + hours + " hours, " + minutes + " minutes";
+    }
+
+    private String format(double value) {
+        return java.math.BigDecimal.valueOf(value)
+                .stripTrailingZeros()
+                .toPlainString();
     }
 }

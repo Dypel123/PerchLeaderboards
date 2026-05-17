@@ -1,10 +1,12 @@
-package me.perch;
+package evergreen;
 
-import me.perch.leaderboard.CommunityLeaderboard;
-import me.perch.leaderboard.Leaderboard;
-import me.perch.leaderboard.TimedLeaderboard;
-import me.perch.leaderboard.TimedTask;
+import evergreen.leaderboard.CommunityLeaderboard;
+import evergreen.leaderboard.Leaderboard;
+import evergreen.leaderboard.TimedLeaderboard;
+import evergreen.leaderboard.TimedTask;
 import org.bukkit.command.*;
+import org.jspecify.annotations.NonNull;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,24 +21,24 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender,
-                             Command command,
-                             String label,
+    public boolean onCommand(@NonNull CommandSender sender,
+                             @NonNull Command command,
+                             @NonNull String label,
                              String[] args) {
 
         if (args.length == 0) {
 
-            if (sender.hasPermission("perchlb.admin")) {
+            if (sender.hasPermission("evergreen.leaderboards.admin")) {
                 plugin.getMessages().send(sender, "admin-usage",
                         msg -> msg
-                                .replace("{reload}", "/perchlb reload")
-                                .replace("{info}", "/perchlb info <leaderboard>")
+                                .replace("{reload}", "/evergreenlb reload")
+                                .replace("{info}", "/evergreenlb info <leaderboard>")
                 );
             }
 
-            if (sender.hasPermission("perchlb.top")) {
+            if (sender.hasPermission("evergreen.leaderboards.top")) {
                 plugin.getMessages().send(sender, "top-usage",
-                        msg -> msg.replace("{top}", "/perchlb top <leaderboard> <page>")
+                        msg -> msg.replace("{top}", "/evergreenlb top <leaderboard> <page>")
                 );
             }
 
@@ -47,7 +49,7 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
 
             case "reload" -> {
 
-                if (!sender.hasPermission("perchlb.admin")) {
+                if (!sender.hasPermission("evergreen.leaderboards.admin")) {
                     plugin.getMessages().send(sender, "no-permission");
                     return true;
                 }
@@ -59,7 +61,7 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
 
             case "info" -> {
 
-                if (!sender.hasPermission("perchlb.admin")) {
+                if (!sender.hasPermission("evergreen.leaderboards.admin")) {
                     plugin.getMessages().send(sender, "no-permission");
                     return true;
                 }
@@ -189,7 +191,7 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
 
             case "top" -> {
 
-                if (!sender.hasPermission("perchlb.top")) {
+                if (!sender.hasPermission("evergreen.leaderboards.top")) {
                     plugin.getMessages().send(sender, "no-permission");
                     return true;
                 }
@@ -308,21 +310,21 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender,
-                                      Command command,
-                                      String alias,
+    public List<String> onTabComplete(@NonNull CommandSender sender,
+                                      @NonNull Command command,
+                                      @NonNull String alias,
                                       String[] args) {
 
         List<String> list = new ArrayList<>();
 
         if (args.length == 1) {
 
-            if (sender.hasPermission("perchlb.admin")) {
+            if (sender.hasPermission("evergreen.leaderboards.admin")) {
                 list.add("reload");
                 list.add("info");
             }
 
-            if (sender.hasPermission("perchlb.top")) {
+            if (sender.hasPermission("evergreen.leaderboards.top")) {
                 list.add("top");
             }
         }
@@ -330,10 +332,10 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
         if (args.length == 2) {
 
             if ((args[0].equalsIgnoreCase("info")
-                    && sender.hasPermission("perchlb.admin"))
+                    && sender.hasPermission("evergreen.leaderboards.admin"))
                     ||
                     (args[0].equalsIgnoreCase("top")
-                            && sender.hasPermission("perchlb.top"))) {
+                            && sender.hasPermission("evergreen.leaderboards.top"))) {
 
                 list.addAll(
                         plugin.getLeaderboardManager()
@@ -344,7 +346,7 @@ public class LeaderboardsCommands implements CommandExecutor, TabCompleter {
 
         if (args.length == 3
                 && args[0].equalsIgnoreCase("top")
-                && sender.hasPermission("perchlb.top")) {
+                && sender.hasPermission("evergreen.leaderboards.top")) {
 
             list.add("1");
             list.add("2");
